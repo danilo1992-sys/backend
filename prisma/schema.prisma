@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Evento {
+  id              String        @id @map("_id")
+  nombre          String
+  fecha           DateTime
+  direccion       String
+  preferencias    Preferencia[]
+  playlistCliente Cancion[]
+  timeline        Timeline[]
+}
+
+model Timeline {
+  id          String   @id @default(cuid()) @map("_id")
+  eventoId    String
+  hora        DateTime
+  actividad   String
+  descripcion String
+  tipo        String
+  evento      Evento   @relation(fields: [eventoId], references: [id])
+}
+
+type Preferencia {
+  nombre        String
+  timestamp     DateTime @default(now())
+  registradoPor String
+}
+
+type Cancion {
+  titulo  String
+  artista String
+}
