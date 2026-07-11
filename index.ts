@@ -1,11 +1,15 @@
 import routes from "./routes/routes.ts";
+import docRoutes from "./routes/doc.ts";
 
 Bun.serve({
   port: 3000,
-  routes,
+  routes: {
+    ...routes,
+    ...docRoutes,
+  },
   development: {
     console: true,
   },
 });
 
-console.log("app listing on port 3000");
+console.log("app listening on port 3000");

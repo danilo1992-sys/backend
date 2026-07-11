@@ -1,0 +1,280 @@
+openapi: 3.0.3
+info:
+  title: Eventos API
+  description: API para gestión de eventos y timelines
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desarrollo
+
+paths:
+  /:
+    get:
+      summary: Mensaje de bienvenida
+      tags: [General]
+      responses:
+        '200':
+          description: Mensaje de bienvenida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Welcome to app
+
+  /eventos:
+    get:
+      summary: Listar eventos o buscar por ID
+      tags: [Eventos]
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: string
+          description: ID del evento a buscar
+      responses:
+        '200':
+          description: Lista de eventos o evento con timeline
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Evento'
+                  - $ref: '#/components/schemas/EventoConTimeline'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Crear un evento
+      tags: [Eventos]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventoCreate'
+      responses:
+        '201':
+          description: Evento creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evento'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /eventos/update:
+    put:
+      summary: Actualizar un evento
+      tags: [Eventos]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventoUpdate'
+      responses:
+        '200':
+          description: Evento actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evento'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /eventos/delete:
+    delete:
+      summary: Eliminar un evento
+      tags: [Eventos]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Evento eliminado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Evento eliminado
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /eventos/{id}/timeline:
+    get:
+      summary: Obtener timeline de un evento
+      tags: [Timeline]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del evento
+      responses:
+        '200':
+          description: Evento con su timeline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoConTimeline'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    Evento:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        fecha:
+          type: string
+          format: date-time
+        direccion:
+          type: string
+
+    EventoCreate:
+      type: object
+      required:
+        - id
+        - nombre
+        - fecha
+        - direccion
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        fecha:
+          type: string
+          format: date-time
+        direccion:
+          type: string
+
+    EventoUpdate:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        fecha:
+          type: string
+          format: date-time
+        direccion:
+          type: string
+
+    EventoConTimeline:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        fecha:
+          type: string
+          format: date-time
+        direccion:
+          type: string
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/Timeline'
+
+    Timeline:
+      type: object
+      properties:
+        id:
+          type: string
+        eventoId:
+          type: string
+        hora:
+          type: string
+          format: date-time
+        actividad:
+          type: string
+        descripcion:
+          type: string
+        tipo:
+          type: string
+
+    Preferencia:
+      type: object
+      properties:
+        nombre:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        registradoPor:
+          type: string
+
+    Cancion:
+      type: object
+      properties:
+        titulo:
+          type: string
+        artista:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Faltan campos requeridos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Faltan campos requeridos
+
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Evento no encontrado
+
+    ServerError:
+      description: Error del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Error al crear evento
